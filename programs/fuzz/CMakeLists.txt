@@ -28,6 +28,9 @@ if(NOT FUZZINGENGINE_LIB)
     add_executable(fuzz_pubkey fuzz_pubkey.c onefile.c)
     target_link_libraries(fuzz_pubkey ${libs})
 
+    add_executable(fuzz_pkcs7 fuzz_pkcs7.c onefile.c)
+    target_link_libraries(fuzz_pkcs7 ${libs})
+
     add_executable(fuzz_client fuzz_client.c common.c onefile.c)
     target_link_libraries(fuzz_client ${libs})
 
@@ -61,6 +64,10 @@ else()
     add_executable(fuzz_pubkey fuzz_pubkey.c)
     target_link_libraries(fuzz_pubkey ${libs} FuzzingEngine)
     SET_TARGET_PROPERTIES(fuzz_pubkey PROPERTIES LINKER_LANGUAGE CXX)
+
+    add_executable(fuzz_pkcs7 fuzz_pkcs7.c)
+    target_link_libraries(fuzz_pkcs7 ${libs} FuzzingEngine)
+    SET_TARGET_PROPERTIES(fuzz_pkcs7 PROPERTIES LINKER_LANGUAGE CXX)
 
     add_executable(fuzz_client fuzz_client.c common.c)
     target_link_libraries(fuzz_client ${libs} FuzzingEngine)
