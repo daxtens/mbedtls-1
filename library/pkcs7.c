@@ -528,7 +528,6 @@ void mbedtls_pkcs7_free( mbedtls_pkcs7 *pkcs7 )
     {
         name_prv = name_cur;
         name_cur = name_cur->next;
-        mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
         mbedtls_free( name_prv );
     }
 }
