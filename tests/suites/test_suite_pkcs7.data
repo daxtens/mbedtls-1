@@ -34,6 +34,10 @@ PKCS7 Signed Data Parse multiple signers #1
 depends_on:MBEDTLS_PKCS7_USE_C
 pkcs7_parse_multiple_sign:"data_files/pkcs7.data.signed.multiplesigners"
 
+PKCS7 Signed Data Parse zero signers #1
+depends_on:MBEDTLS_PKCS7_USE_C
+pkcs7_parse_zero_sign:"data_files/pkcs7.data.signed.zerosigners"
+
 PKCS7 Signed Data without embedded certificate #1
 depends_on:MBEDTLS_PKCS7_USE_C
 pkcs7_verify:"data_files/pkcs7.data.signed.no-cert":"data_files/cli-rsa-sha256.crt":"data_files/pkcs7.data"

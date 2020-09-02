@@ -329,7 +329,7 @@ static int pkcs7_get_signer_info( unsigned char **p, unsigned char *end_set,
  * SignerInfos ::= SET OF SignerInfo
  */
 static int pkcs7_get_signers_info_set( unsigned char **p, unsigned char *end,
-                                       mbedtls_pkcs7_signer_info *signers_set )
+                                       mbedtls_pkcs7_signer_info **signers_set )
 {
     unsigned char *end_set;
     int ret;
@@ -343,13 +343,25 @@ static int pkcs7_get_signers_info_set( unsigned char **p, unsigned char *end,
 
     end_set = *p + len;
 
-    /* parse the first one, for which we have preallocated storage */
-    ret = pkcs7_get_signer_info( p, end_set, signers_set );
-    if( ret != 0 )
-        return( ret );
+    if( len == 0 )
+    {
+        /* There are no signerInfos, bail out now. */
+        return( 0 );
+    }
 
-    /* parse subsequent ones, for which we need to allocate storage */
-    signer_prv = signers_set;
+    /* parse the first one */
+    signer = mbedtls_calloc( 1, sizeof( mbedtls_pkcs7_signer_info ) );
+    if (signer == NULL)
+        return( MBEDTLS_ERR_PKCS7_ALLOC_FAILED );
+
+    *signers_set = signer;
+
+    ret = pkcs7_get_signer_info( p, end_set, signer );
+    if( ret != 0 )
+        goto cleanup;
+
+    /* parse any subsequent ones */
+    signer_prv = signer;
     while( *p != end_set )
     {
         signer = mbedtls_calloc( 1, sizeof( mbedtls_pkcs7_signer_info ) );
@@ -373,13 +385,12 @@ static int pkcs7_get_signers_info_set( unsigned char **p, unsigned char *end,
     return( 0 );
 
 cleanup:
-    signer_prv = signers_set;
-    signer = signer_prv->next;
+    signer = *signers_set;
     while( signer )
     {
-        pkcs7_free_signer_info( signer );
         signer_prv = signer;
         signer = signer->next;
+        pkcs7_free_signer_info( signer_prv );
         mbedtls_free( signer_prv );
     }
     return( ret );
@@ -581,7 +592,7 @@ int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
      * failed to validate'.
      */
 
-    signer = &pkcs7->signed_data.signers;
+    signer = pkcs7->signed_data.signers;
     while( signer != NULL )
     {
         ret = mbedtls_pk_verify( &pk_cxt, md_alg, hash, hashlen,
@@ -625,7 +636,7 @@ void mbedtls_pkcs7_free( mbedtls_pkcs7 *pkcs7 )
     mbedtls_x509_crt_free( &pkcs7->signed_data.certs );
     mbedtls_x509_crl_free( &pkcs7->signed_data.crl );
 
-    si_cur = pkcs7->signed_data.signers.next;
+    si_cur = pkcs7->signed_data.signers;
     while( si_cur != NULL )
     {
         si_prv = si_cur;
@@ -633,8 +644,6 @@ void mbedtls_pkcs7_free( mbedtls_pkcs7 *pkcs7 )
         pkcs7_free_signer_info( si_prv );
         mbedtls_free( si_prv );
     }
-
-    pkcs7_free_signer_info( &pkcs7->signed_data.signers );
 }
 
 #endif

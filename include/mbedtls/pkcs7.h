@@ -127,7 +127,7 @@ typedef struct mbedtls_pkcs7_signed_data
     struct mbedtls_pkcs7_data content;
     mbedtls_x509_crt certs;
     mbedtls_x509_crl crl;
-    struct mbedtls_pkcs7_signer_info signers;
+    struct mbedtls_pkcs7_signer_info *signers;
 }
 mbedtls_pkcs7_signed_data;
 
