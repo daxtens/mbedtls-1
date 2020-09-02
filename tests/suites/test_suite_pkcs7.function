@@ -301,6 +301,7 @@ void pkcs7_parse_multiple_sign( char *pkcs7_file )
     size_t buflen;
     int res;
     mbedtls_pkcs7 pkcs7;
+    mbedtls_pkcs7_signer_info *signer;
     char name_buf[1000];
     const char *issuer = "C=NL, O=PolarSSL, CN=PolarSSL Test CA";
 
@@ -312,12 +313,25 @@ void pkcs7_parse_multiple_sign( char *pkcs7_file )
     res = mbedtls_pkcs7_parse_der( pkcs7_buf, buflen, &pkcs7 );
     TEST_ASSERT( res == MBEDTLS_PKCS7_SIGNED_DATA );
 
-    mbedtls_x509_dn_gets( name_buf, sizeof(name_buf), &pkcs7.signed_data.signers.issuer );
+    signer = &pkcs7.signed_data.signers;
+
+    mbedtls_x509_dn_gets( name_buf, sizeof(name_buf), &signer->issuer );
     TEST_ASSERT( strncmp(name_buf, issuer, strlen(issuer)) == 0 );
 
     memset( name_buf, 0, sizeof( name_buf ) );
-    mbedtls_x509_serial_gets( name_buf, sizeof(name_buf), &pkcs7.signed_data.signers.serial );
+    mbedtls_x509_serial_gets( name_buf, sizeof(name_buf), &signer->serial );
     TEST_ASSERT( strncmp(name_buf, "01", 2) == 0 );
+
+    TEST_ASSERT( pkcs7.signed_data.signers.next != NULL );
+    signer = pkcs7.signed_data.signers.next;
+
+    mbedtls_x509_dn_gets( name_buf, sizeof(name_buf), &signer->issuer );
+    TEST_ASSERT( strncmp(name_buf, issuer, strlen(issuer)) == 0 );
+
+    memset( name_buf, 0, sizeof( name_buf ) );
+    mbedtls_x509_serial_gets( name_buf, sizeof(name_buf), &signer->serial );
+    TEST_ASSERT( strncmp(name_buf, "02", 2) == 0 );
+
 exit:
     mbedtls_free( pkcs7_buf );
     mbedtls_pkcs7_free( &pkcs7 );
